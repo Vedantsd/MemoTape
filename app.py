@@ -2,13 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 import os
 from datetime import datetime
 import json
-import base64 # New import for Base64 encoding
+import base64 
 
-# Initialize the Flask application
 app = Flask(__name__)
 
-# --- Configuration (for demonstration purposes) ---
-# NOTE: In a real application, you would use a secure file path for uploads.
 UPLOAD_FOLDER = 'uploads'
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -31,7 +28,7 @@ def create_memotape_form():
 def read_memotape_form():
     return render_template('read_memotape.html')
 
-@app.route('/story') # New route for displaying the story
+@app.route('/story') 
 def display_memotape_story():
     return render_template('story_display.html')
 
@@ -55,7 +52,7 @@ def create_memo():
                 file_metadata.append({
                     'name': file.filename,
                     'mime_type': file.content_type,
-                    'data': encoded_data, # Base64 encoded image data
+                    'data': encoded_data, 
                 })
             except Exception as e:
                 print(f"Error processing file {file.filename}: {e}")
@@ -74,22 +71,19 @@ def create_memo():
     }
 
     try:
-        # Define directory and filepath
         directory = os.getcwd()
         filepath = os.path.join(directory, filename)
         
-        # Write content as formatted JSON
         with open(filepath, 'w') as f:
             f.write(json.dumps(memo_content, indent=4, separators=(',', ': ')))
         
         print(f"Successfully generated MemoTape file: {filename}")
         
-        # New: Send the file for download, forcing the browser to treat it as an attachment
         return send_from_directory(
             directory,
             filename,
             as_attachment=True,
-            mimetype='application/octet-stream' # Generic binary type for unknown file extensions
+            mimetype='application/octet-stream' 
         )
         
     except Exception as e:
@@ -98,4 +92,4 @@ def create_memo():
 
 if __name__ == '__main__':
     print("Starting Flask server...")
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0", port="5000")
