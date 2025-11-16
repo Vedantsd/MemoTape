@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoTape Story</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo/memotape-logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'memo-green': '#10B981', 
+                        'memo-light': '#E0F2F1', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-padding-top: 64px; 
+        }
+        
+        body {
+            cursor: none;
+        }
+        #custom-cursor {
+            position: fixed;
+            width: 1rem;
+            height: 1rem;
+            background-color: #10B981;
+            border-radius: 9999px;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.2s ease-out, background-color 0.2s ease-out; 
+            transform: translate(-50%, -50%) scale(1);
+        }
+        @media (max-width: 768px) {
+            #custom-cursor { display: none !important; }
+            body { cursor: default; }
+        }
+
+        .story-section {
+            padding: 2.5rem 0;
+            border-left: 2px solid #E0F2F1; 
+            margin-left: 10px;
+            position: relative;
+        }
+        .story-point {
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-color: #10B981;
+            border-radius: 9999px;
+        }
+        .story-content {
+            padding-left: 30px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800" onload="loadMemoFromStorage()">
+    <div id="custom-cursor"></div>
+
+    <nav class="fixed top-0 left-0 w-full bg-white shadow-lg z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{{ url_for('index') }}" class="flex items-center">
+                        <img src="{{ url_for('static', filename='logo/memotape-logo.png') }}" 
+                             alt="MemoTape Logo" 
+                             class="h-8 w-8 object-contain mr-2 rounded-full shadow-md"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                        <span style="display:none;" class="text-memo-green font-bold text-2xl">MT</span>
+                        <span class="text-xl font-extrabold text-gray-900 tracking-tight">MemoTape Story Viewer</span>
+                    </a>
+                </div>
+                <a href="{{ url_for('read_memotape_form') }}" class="text-gray-600 hover:text-memo-green font-medium transition duration-150 hidden sm:block">
+                    &larr; Load Another File
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="min-h-screen pt-24 pb-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div id="story-container" class="bg-white p-6 md:p-10 rounded-xl shadow-2xl border-t-4 border-memo-green space-y-8">
+                <h1 id="main-title" class="text-4xl font-extrabold text-gray-900 mb-4 text-center">
+                    Loading MemoTape...
+                </h1>
+                
+                <div id="story-output" class="pt-4 space-y-10">
+                    <p class="text-center text-gray-500 italic">
+                        Please wait. If this message persists, navigate back and upload the file again.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-xs text-gray-500 mt-1">
+                Design and Development by <a href="#" class="text-memo-green hover:underline">Vedant Desai</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const storyOutput = document.getElementById('story-output');
+        const mainTitle = document.getElementById('main-title');
+
+        function loadMemoFromStorage() {
+            const memoJson = localStorage.getItem('currentMemoTape');
+            if (!memoJson) {
+                mainTitle.textContent = "Error Loading MemoTape";
+                storyOutput.innerHTML = '<p class="text-center text-red-500">No MemoTape data found. Please go back to the <a href="{{ url_for("read_memotape_form") }}" class="text-memo-green hover:underline">upload page</a>.</p>';
+                return;
+            }
+            
+            try {
+                const memoContent = JSON.parse(memoJson);
+                renderStory(memoContent);
+            } catch (error) {
+                mainTitle.textContent = "Error Parsing MemoTape";
+                storyOutput.innerHTML = '<p class="text-center text-red-500">Error: Could not parse the memory data. It may be corrupted.</p>';
+                console.error("Error parsing memo content from localStorage:", error);
+            }
+        }
+
+        function renderStory(memo) {
+            storyOutput.innerHTML = '';
+            
+            mainTitle.textContent = memo.title || "MemoTape: Untitled Memory";
+
+            const header = document.createElement('h2');
+            header.className = `text-3xl font-bold text-center mb-10 p-4 rounded-xl shadow-lg`;
+            header.style.backgroundColor = memo.background_color;
+            header.style.color = getTextColor(memo.background_color);
+            header.textContent = memo.title || "MemoTape: Untitled Memory";
+            storyOutput.appendChild(header);
+
+            const timelineContainer = document.createElement('div');
+            timelineContainer.className = 'timeline-wrapper relative';
+
+            const infoDiv = createStorySection(
+                `A memory recorded on <span class="font-semibold">${memo.date || 'Unknown Date'}</span>`,
+                `<span class="text-gray-700 block mt-1">${memo.location || 'Unknown Location'}</span>`,
+                memo.background_color
+            );
+            timelineContainer.appendChild(infoDiv);
+
+            const storyDiv = createStorySection(
+                'Background Story',
+                `<p class="text-gray-600 whitespace-pre-wrap">${memo.story || 'No detailed story was provided for this memory.'}</p>`,
+                memo.background_color
+            );
+            timelineContainer.appendChild(storyDiv);
+
+
+            if (memo.media_files && memo.media_files.length > 0) {
+                const mediaDiv = createStorySection(
+                    `Visual Tapes (${memo.media_files.length} items)`,
+                    '', 
+                    memo.background_color
+                );
+                
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-6 mt-4';
+
+                memo.media_files.forEach((file, index) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'bg-gray-100 rounded-lg overflow-hidden shadow-md transition duration-300 hover:shadow-xl';
+
+                    const img = document.createElement('img');
+                    img.src = `data:${file.mime_type};base64,${file.data}`;
+                    img.alt = `Media ${index + 1}: ${file.name}`;
+                    img.className = 'w-full h-auto object-cover rounded-lg';
+                    
+                    imgContainer.appendChild(img);
+                    grid.appendChild(imgContainer);
+                });
+                mediaDiv.querySelector('.story-content').appendChild(grid);
+                timelineContainer.appendChild(mediaDiv);
+            } else {
+                const noMediaDiv = createStorySection(
+                    'Visual Tapes',
+                    '<p class="text-gray-500 italic">No media files were found in this MemoTape.</p>',
+                    memo.background_color
+                );
+                timelineContainer.appendChild(noMediaDiv);
+            }
+            
+            storyOutput.appendChild(timelineContainer);
+        }
+
+        function createStorySection(title, contentHTML, color) {
+            const section = document.createElement('div');
+            section.className = 'story-section';
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'story-content';
+            
+            const titleElement = document.createElement('h3');
+            titleElement.className = 'text-xl font-bold mb-2 text-gray-800';
+            titleElement.innerHTML = title;
+            
+            const marker = document.createElement('div');
+            marker.className = 'story-point';
+            marker.style.backgroundColor = color;
+            
+            contentWrapper.appendChild(titleElement);
+            contentWrapper.innerHTML += contentHTML;
+
+            section.appendChild(marker);
+            section.appendChild(contentWrapper);
+            return section;
+        }
+        
+        function getTextColor(bgColor) {
+            const darkColors = ['#10B981', '#3B82F6', '#EC4899', '#D1D5DB'];
+            if (darkColors.includes(bgColor)) {
+                return '#fff';
+            }
+            return '#000';
+        }
+
+        const customCursor = document.getElementById('custom-cursor');
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        if (!isTouchDevice) {
+            document.addEventListener('mousemove', (e) => {
+                customCursor.style.left = `${e.clientX}px`;
+                customCursor.style.top = `${e.clientY}px`;
+
+                const target = e.target;
+                const isInteractive = target.tagName === 'A' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.closest('label') || target.closest('a') || target.closest('button');
+
+                if (isInteractive) {
+                    customCursor.style.transform = 'translate(-50%, -50%) scale(2.2)'; 
+                    customCursor.style.backgroundColor = 'white'; 
+                } else {
+                    customCursor.style.transform = 'translate(-50%, -50%) scale(1)'; 
+                    customCursor.style.backgroundColor = '#10B981'; 
+                }
+            });
+        }
+
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+    </script>
+</body>
+</html>
