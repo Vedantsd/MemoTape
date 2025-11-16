@@ -11,8 +11,8 @@
             theme: {
                 extend: {
                     colors: {
-                        'memo-green': '#10B981', // A nice emerald green
-                        'memo-light': '#E0F2F1', // Very light green/teal
+                        'memo-green': '#10B981', 
+                        'memo-light': '#E0F2F1', 
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -23,12 +23,10 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        /* Custom scroll behavior */
         html {
             scroll-padding-top: 64px; 
         }
         
-        /* Custom cursor styles (copied from index.html) */
         body {
             cursor: none;
         }
@@ -51,10 +49,8 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800">
-    <!-- Custom Cursor Element -->
     <div id="custom-cursor"></div>
 
-    <!-- Navbar (Simplified) -->
     <nav class="fixed top-0 left-0 w-full bg-white shadow-lg z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
@@ -83,10 +79,9 @@
                     Load a MemoTape
                 </h1>
                 <p class="text-gray-500">
-                    Select your local **.memo** file to view the story and media.
+                    Select your local <b>.memo</b> file to view the story and media.
                 </p>
                 
-                <!-- File Input Section -->
                 <div class="pt-4 border-t border-gray-100">
                     <label for="memo-file" class="block text-lg font-medium text-gray-700 mb-2">
                         Upload .memo file:
@@ -108,7 +103,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-gray-800 text-white mt-12">
         <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
             <p class="text-xs text-gray-500 mt-1">
@@ -118,7 +112,6 @@
     </footer>
 
     <script>
-        // --- Reader Logic: Read File and Store in LocalStorage ---
         const memoFileInput = document.getElementById('memo-file');
         const viewStoryButton = document.getElementById('view-story-button');
         const statusMessage = document.getElementById('status-message');
@@ -173,10 +166,8 @@
                 try {
                     const memoContent = JSON.parse(e.target.result);
                     
-                    // --- STEP 1: Store parsed JSON in localStorage ---
                     localStorage.setItem('currentMemoTape', JSON.stringify(memoContent));
                     
-                    // --- STEP 2: Redirect to the dedicated display page ---
                     window.location.href = "{{ url_for('display_memotape_story') }}";
 
                 } catch (error) {
@@ -193,11 +184,9 @@
                 updateButtonState(false);
             };
 
-            // Read the file content as text (JSON string)
             reader.readAsText(file);
         }
 
-        // --- Custom Cursor Logic ---
         const customCursor = document.getElementById('custom-cursor');
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
